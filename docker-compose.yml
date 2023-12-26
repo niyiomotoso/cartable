@@ -1,0 +1,47 @@
+version: '3.8'
+services:
+  spring-boot-app:
+    build:
+      dockerfile: Dockerfile
+    ports:
+      - "8500:8500"
+    volumes:
+      - .:/app
+    depends_on:
+      - mysql
+
+  mysql:
+    platform: linux/x86_64
+    image: mysql:5.7
+    container_name: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=pass
+      - MYSQL_DATABASE=db
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=pass
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+    ports:
+      - "3310:3306"
+
+  mysql_test:
+    platform: linux/x86_64
+    image: mysql:5.7
+    container_name: mysql_test
+    environment:
+      - MYSQL_ROOT_PASSWORD=pass
+      - MYSQL_DATABASE=test_db
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=pass
+    volumes:
+      - mysql_test_data:/var/lib/mysql
+
+    ports:
+      - "3311:3306"
+
+volumes:
+  mysql_data:
+    driver: local
+  mysql_test_data:
+    driver: local
