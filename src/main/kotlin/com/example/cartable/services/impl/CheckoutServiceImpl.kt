@@ -1,5 +1,6 @@
 package com.example.cartable.services.impl
 
+import com.example.cartable.constants.MessageConstants
 import com.example.cartable.constants.OffersMap
 import com.example.cartable.dtos.OrderReceipt
 import com.example.cartable.models.Cart
@@ -10,7 +11,7 @@ import com.example.cartable.repositories.OrderRepository
 import com.example.cartable.repositories.SalesOrderItemRepository
 import com.example.cartable.services.CheckoutService
 import com.example.cartable.services.OfferService
-import org.apache.coyote.BadRequestException
+import com.example.cartable.exceptions.BadRequestException
 import org.springframework.stereotype.Service
 
 @Service
@@ -22,7 +23,7 @@ class CheckoutServiceImpl(private var cartRepository: CartRepository, private va
         val cartList = cartRepository.findByCustomerId(customerId)
 
         if (cartList.isEmpty())
-            throw BadRequestException("user cart is empty")
+            throw BadRequestException(MessageConstants.CART_NOT_FOUND)
 
         val grossTotalPrice = calculateGrossTotalPriceOfCartList(cartList)
         var discountedPrice = 0.0

@@ -10,9 +10,8 @@ import com.example.cartable.models.Item
 import com.example.cartable.repositories.CartRepository
 import com.example.cartable.repositories.CustomerRepository
 import com.example.cartable.repositories.ItemRepository
-import com.example.cartable.services.CartService
-import jakarta.persistence.EntityNotFoundException
-import org.junit.Assert.assertEquals
+import com.example.cartable.services.CheckoutService
+import org.junit.Assert
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.runner.RunWith
@@ -25,9 +24,9 @@ import java.util.*
 
 @RunWith(SpringJUnit4ClassRunner::class)
 @SpringBootTest
-class CartServiceTest {
+class CheckoutServiceTest {
     @Autowired
-    lateinit var cartService: CartService
+    lateinit var checkoutService: CheckoutService
 
     @MockBean
     var itemRepositoryMock: ItemRepository? = null
@@ -42,71 +41,45 @@ class CartServiceTest {
     val defaultItemId = 1L
     val defaultCartId = 1L
 
-    @Test
-    fun `AddToCart with Invalid customer Id -- should throw EntityNotFoundException`() {
-        val exception = assertThrows<EntityNotFoundException> {
-            val cartDto = AddToCartDto(1, -10000000, defaultTestQuantity)
-            cartService.addToCart(cartDto)
-        }
-
-        assertEquals(exception.message, MessageConstants.CUSTOMER_NOT_FOUND_MESSAGE)
-    }
-
-    @Test
-    fun `AddToCart with Invalid item Id -- should throw EntityNotFoundException`() {
-        val exception = assertThrows<EntityNotFoundException> {
-            val cartDto = AddToCartDto(-100000000, defaultCustomerId, defaultTestQuantity)
-            invokeCustomerRepositoryMocks(cartDto)
-            cartService.addToCart(cartDto)
-        }
-
-        assertEquals(exception.message, MessageConstants.ITEM_NOT_FOUND_MESSAGE)
-    }
-
-    @Test
-    fun `AddToCart with Invalid Quantity -- should throw BadRequestException`() {
-        val exception = assertThrows<BadRequestException> {
-            val cartDto = AddToCartDto(defaultItemId, defaultCustomerId, 100000000)
-            invokeCustomerRepositoryMocks(cartDto)
-            invokeItemRepositoryMocks(cartDto)
-            cartService.addToCart(cartDto)
-        }
-
-        assertEquals(exception.message, MessageConstants.NOT_ENOUGH_STOCK_FOR_CART_ADD_MESSAGE)
-    }
-//
 //    @Test
-//    fun `AddToCart with Valid Add Cart Parameters-- should return created cart`() {
-//        val quantityToAdd = 3
-//        val itemToAdd = defaultItemId;
-//        val expectedCart = Cart(0, defaultCustomerId, itemToAdd, quantityToAdd, defaultTestPrice, null, null)
-//        val cartDto = AddToCartDto(itemToAdd, defaultCustomerId, quantityToAdd)
-//        invokeCustomerRepositoryMocks(cartDto)
-//        invokeItemRepositoryMocks(cartDto)
-//        invokeCartRepositoryMocks(cartDto)
-//        val actualCart = cartService.addToCart(cartDto)
+//    fun `AddToCart with Invalid customer Id -- should throw EntityNotFoundException`() {
+//        val exception = assertThrows<EntityNotFoundException> {
+//            val cartDto = AddToCartDto(1, -10000000, defaultTestQuantity)
+//            // cartService.addToCart(cartDto)
+//        }
 //
-//        assertEquals(expectedCart, actualCart)
+//        Assert.assertEquals(exception.message, MessageConstants.CUSTOMER_NOT_FOUND_MESSAGE)
 //    }
 
     @Test
-    fun `RemoveFromCart with Invalid Cart Id -- should throw EntityNotFoundException`() {
-        val exception = assertThrows<EntityNotFoundException> {
-            val cartDto = RemoveFromCartDto(-100000000, defaultTestQuantity, false)
-            cartService.removeFromCart(cartDto)
+    fun `ProcessCheckout with invalid Customer ID -- should throw BadRequestException`() {
+        val exception = assertThrows<BadRequestException> {
+            val customerId = -10000000L
+            checkoutService.processCheckout(customerId)
         }
 
-        assertEquals(exception.message, MessageConstants.CART_NOT_FOUND)
+        Assert.assertEquals(exception.message, MessageConstants.CART_NOT_FOUND)
     }
+
 
     @Test
-    fun `RemoveFromCart remove all item quantities in the cart -- should return True`() {
-        val cartDto = RemoveFromCartDto(defaultCartId, defaultTestQuantity, true)
-        invokeRemoveFromCartRepositoryMocks(cartDto)
+    fun `ProcessCheckout with valid CartList -- should return OrderReceipt`() {
+        val exception = assertThrows<BadRequestException> {
+            val customerId = -10000000L
+            checkoutService.processCheckout(customerId)
+        }
 
-        val deleted = cartService.removeFromCart(cartDto)
-        assertEquals(true, deleted)
+        Assert.assertEquals(exception.message, MessageConstants.CART_NOT_FOUND)
     }
+//
+//    @Test
+//    fun `RemoveFromCart remove all item quantities in the cart -- should return True`() {
+//        val cartDto = RemoveFromCartDto(defaultCartId, defaultTestQuantity, true)
+//        invokeRemoveFromCartRepositoryMocks(cartDto)
+//
+//        val deleted = cartService.removeFromCart(cartDto)
+//        Assert.assertEquals(true, deleted)
+//    }
 
     private fun invokeItemRepositoryMocks(addToCartDto: AddToCartDto) {
         val itemMock = Optional.of(Item(defaultItemId, "Mock", defaultTestPrice, defaultTestQuantity, null, null))

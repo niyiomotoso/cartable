@@ -54,7 +54,7 @@ class CartServiceImpl (private var itemRepository: ItemRepository,
 
     override fun removeFromCart(removeFromCartDto: RemoveFromCartDto): Boolean {
          val cart = cartRepository.findById(removeFromCartDto.cartId).orElseThrow{
-            throw EntityNotFoundException("Cart record does not exist")
+            throw EntityNotFoundException(MessageConstants.CART_NOT_FOUND)
         }
 
         if (removeFromCartDto.removeAll) {
