@@ -13,6 +13,7 @@ import org.junit.Assert
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito
@@ -62,7 +63,7 @@ class CheckoutServiceTest {
     )
 
     private final val testOfferDiscountPrice = 300.0
-    private final val testOrderReceipt_Without_Offer = OrderReceipt(
+    private final val testOrderReceiptWithoutOffer = OrderReceipt(
             defaultOrderId,
             defaultCustomerId,
             14000.0,
@@ -71,10 +72,10 @@ class CheckoutServiceTest {
             testSalesOrderItemList
     )
 
-    private final val testOrderReceipt_With_Offer = OrderReceipt(
+    private final val testOrderReceiptWithOffer = OrderReceipt(
             defaultOrderId,
             defaultCustomerId,
-            14000.0,
+            13700.0,
             14000.0,
             testOfferDiscountPrice,
             testSalesOrderItemList
@@ -90,19 +91,21 @@ class CheckoutServiceTest {
         Assert.assertEquals(exception.message, MessageConstants.CART_NOT_FOUND)
     }
 
- //   @Test
+    @Test
     fun `ProcessCheckout with valid CartList and No Offer -- should return OrderReceipt with 0 Discount`() {
         val customerId = defaultCustomerId
         injectCartServiceScenarios(customerId)
         invokeOrderRepositoryMock()
         val orderReceipt = checkoutService.processCheckout(customerId)
 
-        Assert.assertEquals(testOrderReceipt_Without_Offer.orderId, orderReceipt.orderId)
-        Assert.assertEquals(testOrderReceipt_Without_Offer.discountedPrice, 0.0, 0.00000)
-        Assert.assertEquals(testOrderReceipt_Without_Offer.salesOrderItems, orderReceipt.salesOrderItems)
+        Assert.assertEquals(testOrderReceiptWithoutOffer.orderId, orderReceipt.orderId)
+        Assert.assertEquals(testOrderReceiptWithoutOffer.discountedPrice, 0.0, 0.00000)
+        Assert.assertEquals(testOrderReceiptWithoutOffer.netTotalPrice, orderReceipt.netTotalPrice, 0.00000)
+        Assert.assertEquals(testOrderReceiptWithoutOffer.grossTotalPrice, orderReceipt.grossTotalPrice, 0.00000)
+        Assert.assertEquals(testOrderReceiptWithoutOffer.customerId, orderReceipt.customerId)
     }
 
-//    @Test
+    @Test
     fun `ProcessCheckout with valid CartList and Active 2-for-1 Offer -- should return OrderReceipt with some Discount`() {
         val customerId = defaultCustomerId
         injectCartServiceScenarios(customerId)
@@ -110,9 +113,11 @@ class CheckoutServiceTest {
         injectOfferServiceScenarios()
         val orderReceipt = checkoutService.processCheckout(customerId)
 
-        Assert.assertEquals(testOrderReceipt_With_Offer.orderId, orderReceipt.orderId)
-        Assert.assertEquals(testOrderReceipt_With_Offer.discountedPrice, testOfferDiscountPrice, 0.0000)
-        Assert.assertEquals(testOrderReceipt_With_Offer.salesOrderItems, orderReceipt.salesOrderItems)
+        Assert.assertEquals(testOrderReceiptWithOffer.orderId, orderReceipt.orderId)
+        Assert.assertEquals(testOrderReceiptWithOffer.discountedPrice, testOfferDiscountPrice, 0.0000)
+        Assert.assertEquals(testOrderReceiptWithOffer.customerId, orderReceipt.customerId)
+        Assert.assertEquals(testOrderReceiptWithOffer.netTotalPrice, orderReceipt.netTotalPrice, 0.00000)
+        Assert.assertEquals(testOrderReceiptWithOffer.grossTotalPrice, orderReceipt.grossTotalPrice, 0.00000)
     }
 
     private fun injectOfferServiceScenarios() {
@@ -121,8 +126,8 @@ class CheckoutServiceTest {
     }
 
     private fun invokeOrderRepositoryMock() {
-        val newOrder = Order(0, defaultCustomerId, 0.0, 1200.0, 1200.0, null, null)
-        Mockito.`when`(orderRepositoryMock.save(newOrder)).thenReturn(newOrder)
+        val savedOrder = Order(defaultOrderId, defaultCustomerId, 0.0, 0.0, 0.0, null, null)
+        Mockito.`when`(orderRepositoryMock.save(ArgumentMatchers.any(Order::class.java))).thenReturn(savedOrder)
     }
 
 

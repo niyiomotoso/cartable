@@ -17,36 +17,6 @@ import org.springframework.transaction.annotation.Transactional
 class CartServiceImpl (private var itemRepository: ItemRepository,
                        private var customerRepository: CustomerRepository,
                        private var cartRepository: CartRepository): CartService {
-    override fun addToCart2(addToCartDto: AddToCartDto, cartMock: Cart): Cart {
-        customerRepository.findById(addToCartDto.customerId).orElseThrow {
-            throw EntityNotFoundException(MessageConstants.CUSTOMER_NOT_FOUND_MESSAGE)
-        }
-
-        val item = itemRepository.findById(addToCartDto.itemId).orElseThrow {
-            throw EntityNotFoundException(MessageConstants.ITEM_NOT_FOUND_MESSAGE)
-        }
-
-        val existingCart = cartRepository.findByCustomerIdAndItemId(addToCartDto.customerId, addToCartDto.itemId)
-
-        val updatedCart: Cart = if (existingCart != null) {
-            // add the previously added quantity to the prospective one
-            val updatedQuantity = existingCart.quantity + addToCartDto.quantity
-            if (item?.quantity!! < updatedQuantity)
-                throw BadRequestException(MessageConstants.NOT_ENOUGH_STOCK_FOR_CART_UPDATE_MESSAGE)
-            existingCart.quantity = updatedQuantity
-
-            cartRepository.save(existingCart)
-        } else {
-            if (item?.quantity!! < addToCartDto.quantity)
-                throw BadRequestException(MessageConstants.NOT_ENOUGH_STOCK_FOR_CART_ADD_MESSAGE)
-
-            val cart = Cart(0, addToCartDto.customerId, addToCartDto.itemId, addToCartDto.quantity, item.price!!, null, null)
-            cartRepository.save(cartMock)
-        }
-
-        return updatedCart
-    }
-
     @Transactional(rollbackFor = [Exception::class])
     override fun addToCart(addToCartDto: AddToCartDto): Cart {
         customerRepository.findById(addToCartDto.customerId).orElseThrow {
