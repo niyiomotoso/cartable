@@ -28,5 +28,7 @@ The test is run with a gradle command. To run the test `cd` to `parent` director
 
 
 # Design Note
+A well-detailed design note is available in Notes.pdf in the parent folder.
+
 
 

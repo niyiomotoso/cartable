@@ -6,6 +6,7 @@ import com.example.cartable.dtos.OrderReceipt
 import com.example.cartable.exceptions.BadRequestException
 import com.example.cartable.models.*
 import com.example.cartable.repositories.*
+import com.example.cartable.services.CartService
 import com.example.cartable.services.OfferService
 import com.example.cartable.services.impl.CheckoutServiceImpl
 import org.junit.Assert
@@ -26,7 +27,7 @@ class CheckoutServiceTest {
     lateinit var itemRepositoryMock: ItemRepository
 
     @Mock
-    lateinit var cartRepositoryMock: CartRepository
+    lateinit var cartServiceMock: CartService
     @Mock
     lateinit var orderRepositoryMock: OrderRepository
 
@@ -89,10 +90,10 @@ class CheckoutServiceTest {
         Assert.assertEquals(exception.message, MessageConstants.CART_NOT_FOUND)
     }
 
-//    @Test
+    @Test
     fun `ProcessCheckout with valid CartList and No Offer -- should return OrderReceipt with 0 Discount`() {
         val customerId = defaultCustomerId
-        invokeCartRepositoryMocks(customerId)
+        injectCartServiceScenarios(customerId)
         invokeOrderRepositoryMock()
         val orderReceipt = checkoutService.processCheckout(customerId)
 
@@ -104,9 +105,9 @@ class CheckoutServiceTest {
 //    @Test
     fun `ProcessCheckout with valid CartList and Active 2-for-1 Offer -- should return OrderReceipt with some Discount`() {
         val customerId = defaultCustomerId
-        invokeCartRepositoryMocks(customerId)
+        injectCartServiceScenarios(customerId)
         invokeOrderRepositoryMock()
-        invokeOfferRepositoryMock()
+        injectOfferServiceScenarios()
         val orderReceipt = checkoutService.processCheckout(customerId)
 
         Assert.assertEquals(testOrderReceipt_With_Offer.orderId, orderReceipt.orderId)
@@ -114,7 +115,7 @@ class CheckoutServiceTest {
         Assert.assertEquals(testOrderReceipt_With_Offer.salesOrderItems, orderReceipt.salesOrderItems)
     }
 
-    private fun invokeOfferRepositoryMock() {
+    private fun injectOfferServiceScenarios() {
         Mockito.`when`(offerServiceMock.existsBySlugAndActive(OffersMap.OFFER_TWO_FOR_ONE, true)).thenReturn(true)
         Mockito.`when`(offerServiceMock.getDiscountedPriceOnCart(testCartList, OffersMap.OFFER_TWO_FOR_ONE)).thenReturn(testOfferDiscountPrice)
     }
@@ -125,7 +126,7 @@ class CheckoutServiceTest {
     }
 
 
-    private fun invokeCartRepositoryMocks(customerId: Long) {
-        Mockito.`when`(cartRepositoryMock.findByCustomerId(customerId)).thenReturn(testCartList)
+    private fun injectCartServiceScenarios(customerId: Long) {
+        Mockito.`when`(cartServiceMock.findByCustomerId(customerId)).thenReturn(testCartList)
     }
 }

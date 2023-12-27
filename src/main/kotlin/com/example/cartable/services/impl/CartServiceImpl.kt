@@ -11,11 +11,13 @@ import com.example.cartable.services.CartService
 import com.example.cartable.exceptions.BadRequestException;
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class CartServiceImpl (private var itemRepository: ItemRepository,
                        private var customerRepository: CustomerRepository,
                        private var cartRepository: CartRepository): CartService {
+    @Transactional(rollbackFor = [Exception::class])
     override fun addToCart(addToCartDto: AddToCartDto): Cart {
         customerRepository.findById(addToCartDto.customerId).orElseThrow {
             throw EntityNotFoundException(MessageConstants.CUSTOMER_NOT_FOUND_MESSAGE)
@@ -46,12 +48,29 @@ class CartServiceImpl (private var itemRepository: ItemRepository,
         return updatedCart
     }
 
+    override fun findByCustomerId(customerId: Long): List<Cart> {
+        return cartRepository.findByCustomerId(customerId)
+    }
+
+
+    override fun emptyCustomerCart(customerId: Long): Boolean {
+        customerRepository.findById(customerId).orElseThrow {
+            throw EntityNotFoundException(MessageConstants.CUSTOMER_NOT_FOUND_MESSAGE)
+        }
+
+        val cartList = cartRepository.findByCustomerId(customerId)
+        cartRepository.deleteAll(cartList)
+
+        return true
+    }
+
+    @Transactional(rollbackFor = [Exception::class])
     override fun removeFromCart(removeFromCartDto: RemoveFromCartDto): Boolean {
          val cart = cartRepository.findById(removeFromCartDto.cartId).orElseThrow{
             throw EntityNotFoundException(MessageConstants.CART_NOT_FOUND)
         }
 
-        if (removeFromCartDto.removeAll) {
+        if (removeFromCartDto.removeAllQuantities) {
             cartRepository.delete(cart)
         }
 

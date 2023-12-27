@@ -3,5 +3,5 @@ package com.example.cartable.dtos
 class RemoveFromCartDto (
         var cartId: Long,
         var quantity: Int,
-        var removeAll: Boolean
+        var removeAllQuantities: Boolean
 )
