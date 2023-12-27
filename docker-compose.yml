@@ -8,6 +8,7 @@ services:
     volumes:
       - .:/app
     depends_on:
+      - mysql_test
       - mysql
 
   mysql:
@@ -31,7 +32,7 @@ services:
     container_name: mysql_test
     environment:
       - MYSQL_ROOT_PASSWORD=pass
-      - MYSQL_DATABASE=test_db
+      - MYSQL_DATABASE=db
       - MYSQL_USER=user
       - MYSQL_PASSWORD=pass
     volumes:

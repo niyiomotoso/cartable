@@ -39,13 +39,7 @@ class CartServiceImpl (private var itemRepository: ItemRepository,
             if (item?.quantity!! < addToCartDto.quantity)
                 throw BadRequestException(MessageConstants.NOT_ENOUGH_STOCK_FOR_CART_ADD_MESSAGE)
 
-            println("here")
             val cart = Cart(0, addToCartDto.customerId, addToCartDto.itemId, addToCartDto.quantity, item.price!!, null, null)
-            println(cart.itemId)
-            println(cart.customerId)
-            println(cart.quantity)
-            println(cart.unitPrice)
-            println(cartRepository)
             cartRepository.save(cart)
         }
 

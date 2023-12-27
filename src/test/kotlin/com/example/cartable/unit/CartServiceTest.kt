@@ -56,7 +56,7 @@ class CartServiceTest {
     fun `AddToCart with Invalid item Id -- should throw EntityNotFoundException`() {
         val exception = assertThrows<EntityNotFoundException> {
             val cartDto = AddToCartDto(-100000000, defaultCustomerId, defaultTestQuantity)
-            invokeCustomerRepositoryMocks(cartDto)
+            injectCustomerRepositoryScenarios(cartDto)
             cartService.addToCart(cartDto)
         }
 
@@ -67,27 +67,27 @@ class CartServiceTest {
     fun `AddToCart with Invalid Quantity -- should throw BadRequestException`() {
         val exception = assertThrows<BadRequestException> {
             val cartDto = AddToCartDto(defaultItemId, defaultCustomerId, 100000000)
-            invokeCustomerRepositoryMocks(cartDto)
-            invokeItemRepositoryMocks(cartDto)
+            injectCustomerRepositoryScenarios(cartDto)
+            injectItemRepositoryScenarios(cartDto)
             cartService.addToCart(cartDto)
         }
 
         assertEquals(exception.message, MessageConstants.NOT_ENOUGH_STOCK_FOR_CART_ADD_MESSAGE)
     }
-//
+
 //    @Test
-//    fun `AddToCart with Valid Add Cart Parameters-- should return created cart`() {
-//        val quantityToAdd = 3
-//        val itemToAdd = defaultItemId;
-//        val expectedCart = Cart(0, defaultCustomerId, itemToAdd, quantityToAdd, defaultTestPrice, null, null)
-//        val cartDto = AddToCartDto(itemToAdd, defaultCustomerId, quantityToAdd)
-//        invokeCustomerRepositoryMocks(cartDto)
-//        invokeItemRepositoryMocks(cartDto)
-//        invokeCartRepositoryMocks(cartDto)
-//        val actualCart = cartService.addToCart(cartDto)
-//
-//        assertEquals(expectedCart, actualCart)
-//    }
+    fun `AddToCart with Valid Add Cart Parameters-- should return created cart`() {
+        val quantityToAdd = 3
+        val itemToAdd = defaultItemId;
+        val expectedCart = Cart(0, defaultCustomerId, itemToAdd, quantityToAdd, defaultTestPrice, null, null)
+        val cartDto = AddToCartDto(itemToAdd, defaultCustomerId, quantityToAdd)
+        injectCustomerRepositoryScenarios(cartDto)
+        injectItemRepositoryScenarios(cartDto)
+        injectAddToCartRepositoryScenarios(cartDto)
+        val actualCart = cartService.addToCart(cartDto)
+
+        assertEquals(expectedCart, actualCart)
+    }
 
     @Test
     fun `RemoveFromCart with Invalid Cart Id -- should throw EntityNotFoundException`() {
@@ -108,17 +108,17 @@ class CartServiceTest {
         assertEquals(true, deleted)
     }
 
-    private fun invokeItemRepositoryMocks(addToCartDto: AddToCartDto) {
+    private fun injectItemRepositoryScenarios(addToCartDto: AddToCartDto) {
         val itemMock = Optional.of(Item(defaultItemId, "Mock", defaultTestPrice, defaultTestQuantity, null, null))
         Mockito.`when`(itemRepositoryMock?.findById(addToCartDto.itemId)).thenReturn(itemMock)
     }
 
-    private fun invokeCustomerRepositoryMocks(addToCartDto: AddToCartDto) {
+    private fun injectCustomerRepositoryScenarios(addToCartDto: AddToCartDto) {
         val customerMock = Optional.of(Customer(defaultCustomerId, "Mock", null, null))
         Mockito.`when`(customerRepositoryMock?.findById(addToCartDto.customerId)).thenReturn(customerMock)
     }
 
-    private fun invokeAddToCartRepositoryMocks(addToCartDto: AddToCartDto) {
+    private fun injectAddToCartRepositoryScenarios(addToCartDto: AddToCartDto) {
         val cartMock = Cart(0, addToCartDto.customerId, addToCartDto.itemId, addToCartDto.quantity, defaultTestPrice, null, null)
         Mockito.`when`(cartRepositoryMock.save(cartMock)).thenReturn(cartMock)
     }
