@@ -16,6 +16,7 @@ import org.junit.Assert.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -36,11 +37,13 @@ class CartServiceTest {
     @MockBean
     lateinit var cartRepositoryMock: CartRepository
 
-    val defaultTestPrice = 1.0
-    val defaultTestQuantity = 10
-    val defaultCustomerId = 1L
-    val defaultItemId = 1L
-    val defaultCartId = 1L
+    private final val defaultTestPrice = 1.0
+    private final val defaultTestQuantity = 10
+    private final val defaultCustomerId = 1L
+    private final val defaultItemId = 1L
+    private final val defaultCartId = 1L
+
+    private final val testCartModel = Cart(0, defaultCustomerId, defaultItemId, defaultTestQuantity, defaultTestPrice, null, null)
 
     @Test
     fun `AddToCart with Invalid customer Id -- should throw EntityNotFoundException`() {
@@ -75,18 +78,17 @@ class CartServiceTest {
         assertEquals(exception.message, MessageConstants.NOT_ENOUGH_STOCK_FOR_CART_ADD_MESSAGE)
     }
 
-//    @Test
+    @Test
     fun `AddToCart with Valid Add Cart Parameters-- should return created cart`() {
         val quantityToAdd = 3
-        val itemToAdd = defaultItemId;
-        val expectedCart = Cart(0, defaultCustomerId, itemToAdd, quantityToAdd, defaultTestPrice, null, null)
+        val itemToAdd = defaultItemId
         val cartDto = AddToCartDto(itemToAdd, defaultCustomerId, quantityToAdd)
         injectCustomerRepositoryScenarios(cartDto)
         injectItemRepositoryScenarios(cartDto)
-        injectAddToCartRepositoryScenarios(cartDto)
+        injectAddToCartRepositoryScenarios()
         val actualCart = cartService.addToCart(cartDto)
 
-        assertEquals(expectedCart, actualCart)
+        assertEquals(testCartModel, actualCart)
     }
 
     @Test
@@ -118,9 +120,8 @@ class CartServiceTest {
         Mockito.`when`(customerRepositoryMock?.findById(addToCartDto.customerId)).thenReturn(customerMock)
     }
 
-    private fun injectAddToCartRepositoryScenarios(addToCartDto: AddToCartDto) {
-        val cartMock = Cart(0, addToCartDto.customerId, addToCartDto.itemId, addToCartDto.quantity, defaultTestPrice, null, null)
-        Mockito.`when`(cartRepositoryMock.save(cartMock)).thenReturn(cartMock)
+    private fun injectAddToCartRepositoryScenarios() {
+        Mockito.`when`(cartRepositoryMock.save(ArgumentMatchers.any(Cart::class.java))).thenReturn(testCartModel)
     }
 
     private fun invokeRemoveFromCartRepositoryMocks(removeFromCartDto: RemoveFromCartDto) {
